@@ -7,7 +7,7 @@ function bindAll(_this, target) {
   } else if (typeof target === "object") {
     const bound = { ...target }
     for (const key of Object.keys(target)) {
-      bound[key] = bind(_this, target[key])
+      bound[key] = bindAll(_this, target[key])
     }
     return bound
   }
