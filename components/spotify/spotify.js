@@ -12,8 +12,8 @@ function toUrl(path, params = {}) {
   return `${path}${qs.stringify(params, { arrayFormat: "comma" })}`
 }
 
-class Spotify {
-  constructor({ client = null, token = null }, methods = {}) {
+class API {
+  constructor({ client = null, token = null }, properties = {}) {
     this.client = client
     this.token = token
     if (!this.client) {
@@ -26,42 +26,103 @@ class Spotify {
         withCredentials: true,
       })
     }
-    for (const key of Object.keys(methods)) {
-      this[key] = methods[key].bind(this)
+    for (const key of Object.keys(properties)) {
+      if (typeof properties[key] == "function") {
+        this[key] = properties[key].bind(this)
+      } else {
+        this[key] = properties[key]
+      }
     }
+  }
+}
+class Spotify extends API {
+  get my() {
+    return new API(this, {
+      async playlists(params = {}) {
+        return (await this.client.get(toUrl("/v1/me/playlists", params))).data
+      },
+      async profile(params = {}) {
+        return (await this.client.get(toUrl("/v1/me", params))).data
+      },
+      get top() {
+        return new API(this, {
+          async artists(params = {}) {
+            return (await this.client.get(toUrl("/v1/me/top/artists", params))).data
+          },
+          async tracks(params = {}) {
+            return (await this.client.get(toUrl("/v1/me/top/tracks", params))).data
+          },
+        })
+      },
+    })
+  }
+  get playlist(playlist_id) {
+    return new API(this, {
+      async details(params = {}) {
+        return (await this.client.get(idsToUrl("/v1/playlists", playlist_id, params))).data
+      },
+      async images(params = {}) {
+        return (await this.client.get(toUrl(`/v1/playlists/${playlist_id}/images`, params))).data
+      },
+      async tracks(params = {}) {
+        return (await this.client.get(toUrl(`/v1/playlists/${playlist_id}/tracks`, params))).data
+      },
+      async add(track_ids = [], position = undefined, params = {}) {
+        const uris = track_ids.map(id => `spotify:track:${id}`)
+        const body = { uris, position }
+        return (await this.client.post(`/v1/playlists/${playlist_id}`, body)).data
+      },
+      async delete(track_ids = [], position = undefined, params = {}) {
+        const uris = track_ids.map(id => ({ uri: `spotify:track:${id}` }))
+        const body = { uris, position }
+        return (await this.client.delete(`/v1/playlists/${playlist_id}`, body)).data
+      },
+      async update(details) {
+        return (await this.client.put(`/v1/playlists/${playlist_id}`, details)).data
+      },
+    })
   }
   async search(q, type, params = {})  {
     return (await this.client.get(toUrl("search", { ...params, q, type }))).data
   },
-  get shows() {
-    return new Spotify(this, {
+  get show() {
+    return new API(this, {
+      async details(show_id, params = {}) {
+        return (await this.client.get(idsToUrl("/v1/shows", show_id, params))).data
+      },
       async episodes(show_id, params = {}) {
         return (await this.client.get(toUrl(`/v1/shows/${show_id}/episodes`, params))).data
       },
-      async shows(show_id, params = {}) {
-        return (await this.client.get(idsToUrl("/v1/shows", show_id, params))).data
-      },
     })
   }
-  get tracks() {
-    return new Spotify(this, {
+  get track() {
+    return new API(this, {
+      async details(track_id, params = {}) {
+        return (await this.client.get(idsToUrl("/v1/tracks", track_id, params))).data
+      },
       async audioAnalysis(track_id, params = {}) {
         return (await this.client.get(toUrl(`/v1/audio-analysis/${track_id}`, params))).data
       },
       async audioFeatures(track_id, params = {}) {
         return (await this.client.get(idsToUrl("/v1/audio-features", track_id, params))).data
       },
-      async tracks(track_id, params = {}) {
-        return (await this.client.get(idsToUrl("/v1/tracks", track_id, params))).data
-      },
     })
   }
-  get users() {
-    return new Spotify(this, {
-      async me(params = {}) {
-        return (await this.client.get(toUrl("/v1/me", params))).data
+  user(user_id) {
+    return new API(this, {
+      async createPlaylist(name, description = undefined, public = true, collaborative = false) {
+        const details = {
+          name,
+          description,
+          public,
+          collaborative,
+        }
+        return (await this.client.post(`/v1/users/${user_id}/playlists`, details)).data
       },
-      async user (user_id, params) {
+      async playlists(params = {}) {
+        return (await this.client.get(toUrl(`/v1/users/${user_id}/playlists`, params))).data
+      },
+      async profile(params = {}) {
         return (await this.client.get(toUrl(`/v1/users/${user_id}`, params))).data
       },
     })

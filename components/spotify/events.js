@@ -25,26 +25,27 @@ module.exports = {
   },
   async run() {
     const api = this.spotify.api()
-    const me = await api.users.me()
-    let changed = false
-    const updates = {
-      me,
-    }
-
-    const latestFollowers = this.db.get("me_followers") || 0
-    console.log(me, me.data)
-    console.log(me.followers, latestFollowers)
-    if (me.followers && me.followers.total && me.followers.total != latestFollowers) {
-      changed = true
-      updates.me.followers.change = me.followers.total - latestFollowers,
-      this.db.set("me_followers", me.followers.total)
-    }
-
-    if (changed) {
-      this.$emit(updates)
-      return updates
-    } else {
-      return
-    }
+    const topArtists = await api.my.top.artists()
+    console.log(topArtists)
+    this.$emit(topArtists)
+    // const me = await api.users.me()
+    // let changed = false
+    // const updates = {
+    //   me,
+    // }
+    //
+    // const latestFollowers = this.db.get("me_followers") || 0
+    // if (me.followers && me.followers.total && me.followers.total != latestFollowers) {
+    //   changed = true
+    //   updates.me.followers.change = me.followers.total - latestFollowers,
+    //   this.db.set("me_followers", me.followers.total)
+    // }
+    //
+    // if (changed) {
+    //   this.$emit(updates)
+    //   return updates
+    // } else {
+    //   return
+    // }
   },
 }
