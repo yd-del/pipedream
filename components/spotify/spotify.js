@@ -21,7 +21,7 @@ class API {
         baseURL: "https://api.spotify.com",
         timeout: 1000,
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${this.token}`,
         },
         withCredentials: true,
       })
