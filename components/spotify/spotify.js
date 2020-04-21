@@ -1,5 +1,16 @@
 const axios = require('axios')
-const querystring = require("querystring")
+const qs = require("querystring")
+
+function idsToUrl(path, idOrArray, params) {
+  if (Array.isArray(idOrArray)) {
+    return this.toUrl(path, { ...params, ids: idOrArray })
+  }
+  return this.toUrl(`${path}/${idOrArray}`, params)
+}
+
+function toUrl(path, params = {}) {
+  return `${path}${qs.stringify(params, { arrayFormat: "comma" })}`
+}
 
 class Spotify {
   constructor({ client = null, token = null }, methods = {}) {
@@ -19,10 +30,40 @@ class Spotify {
       this[key] = methods[key].bind(this)
     }
   }
+  async search(q, type, params = {})  {
+    return (await this.client.get(toUrl("search", { ...params, q, type }))).data
+  },
+  get shows() {
+    return new Spotify(this, {
+      async episodes(show_id, params = {}) {
+        return (await this.client.get(toUrl(`/v1/shows/${show_id}/episodes`, params))).data
+      },
+      async shows(show_id, params = {}) {
+        return (await this.client.get(idsToUrl("/v1/shows", show_id, params))).data
+      },
+    })
+  }
+  get tracks() {
+    return new Spotify(this, {
+      async audioAnalysis(track_id, params = {}) {
+        return (await this.client.get(toUrl(`/v1/audio-analysis/${track_id}`, params))).data
+      },
+      async audioFeatures(track_id, params = {}) {
+        return (await this.client.get(idsToUrl("/v1/audio-features", track_id, params))).data
+      },
+      async tracks(track_id, params = {}) {
+        return (await this.client.get(idsToUrl("/v1/tracks", track_id, params))).data
+      },
+    })
+  }
   get users() {
     return new Spotify(this, {
-      me: async () => (await this.client.get("/v1/me")).data,
-      user: async user_id => (await this.client.get(`/v1/users/${user_id}`)).data,
+      async me(params = {}) {
+        return (await this.client.get(toUrl("/v1/me", params))).data
+      },
+      async user (user_id, params) {
+        return (await this.client.get(toUrl(`/v1/users/${user_id}`, params))).data
+      },
     })
   }
 }

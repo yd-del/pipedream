@@ -8,6 +8,8 @@
 // Issue: I really want local requires so that I don't have to do a push every time I want to change the app
 // Issue: Can't use branch named ac/rally - must use ac-rally. Attempting to deploy creates a massive wall of text without a clear error message.
 // Issue: When doing remote requires, errors in the require are not shown with filename - difficult to find the actual error.
+// Issue: When doing remote requires, changes to required files don't get registered unless updating component.js - NOT JUST CALLINIG PD-UPDATE!
+//   The component.js must actually change for changes in required files to be picked up.
 const spotify = require("https://github.com/PipedreamHQ/pipedream/blob/ac-rally/components/spotify/spotify.js")
 
 module.exports = {
@@ -30,7 +32,7 @@ module.exports = {
     }
 
     const latestFollowers = this.db.get("me_followers") || 0
-    console.log(me)
+    console.log(me, me.data)
     console.log(me.followers, latestFollowers)
     if (me.followers && me.followers.total && me.followers.total != latestFollowers) {
       changed = true
