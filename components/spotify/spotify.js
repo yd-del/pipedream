@@ -1,6 +1,19 @@
 const axios = require('axios')
 const qs = require("querystring")
 
+function bindAll(_this: object, target: any): any {
+  if (typeof target === "function") {
+    return target.bind(_this)
+  } else if (typeof target === "object") {
+    const bound = { ...target }
+    for (const key of Object.keys(target)) {
+      bound[key] = bind(_this, target[key])
+    }
+    return bound
+  }
+  return target
+}
+
 function idsToUrl(path, idOrArray, params) {
   if (Array.isArray(idOrArray)) {
     return this.toUrl(path, { ...params, ids: idOrArray })
@@ -45,14 +58,7 @@ class API {
         return Promise.reject(err)
       })
     }
-    for (const key of Object.keys(properties)) {
-      console.log("key", key, typeof properties[key])
-      if (typeof properties[key] == "function") {
-        this[key] = properties[key].bind(this)
-      } else {
-        this[key] = properties[key]
-      }
-    }
+    Object.assign(this, bindAll(properties))
   }
 }
 class Spotify extends API {
@@ -64,15 +70,13 @@ class Spotify extends API {
       async profile(params = {}) {
         return (await this.client.get(toUrl("/v1/me", params))).data
       },
-      get top() {
-        return new API(this, {
-          async artists(params = {}) {
-            return (await this.client.get(toUrl("/v1/me/top/artists", params))).data
-          },
-          async tracks(params = {}) {
-            return (await this.client.get(toUrl("/v1/me/top/tracks", params))).data
-          },
-        })
+      top: {
+        async artists(params = {}) {
+          return (await this.client.get(toUrl("/v1/me/top/artists", params))).data
+        },
+        async tracks(params = {}) {
+          return (await this.client.get(toUrl("/v1/me/top/tracks", params))).data
+        },
       },
     })
   }
