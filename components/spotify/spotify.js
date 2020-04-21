@@ -46,6 +46,7 @@ class API {
       })
     }
     for (const key of Object.keys(properties)) {
+      console.log("key", key, typeof properties[key])
       if (typeof properties[key] == "function") {
         this[key] = properties[key].bind(this)
       } else {
