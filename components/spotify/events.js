@@ -14,7 +14,7 @@ const spotify = require("https://github.com/PipedreamHQ/pipedream/blob/ac-rally/
 
 module.exports = {
   name: "Spotify.Events",
-  version: "1.12",
+  version: "1.13",
   props: {
     // Why do I have to do this? Why is this not just a normal require? What does registering get me other than naming and putting on this?
     spotify,
@@ -25,36 +25,53 @@ module.exports = {
   },
   async run() {
     const api = this.spotify.api()
-    // const topArtists = await api.my.top.artists({ limit: 20 })
-    let tracks = []
+    const me = await api.getMe()
+    const artists = new Set()
     try {
-      const topTracks = await api.my.top.tracks({ limit: 20 })
-      tracks.push(...topTracks)
+      const topArtists = await api.getMyTopArtists({ limit: 20 })
+      for (const artist of topArtists) {
+        artists.add(artist.uri)
+      }
+    } catch (e) {}
+    try {
+      const tracks = (await api.getMyTopTracks({ limit: 20 })).items
+      for (const track of tracks) {
+        for (const artist of track.artists) {
+          artists.add(artist.uri)
+        }
+      }
     } catch(e) { console.log(e) }
     try {
-      const playlists = await api.my.playlists({ limit: 20 })
+      const playlists = (await api.getUserPlaylists(me.id, { limit: 20 })).items
       for (const playlist of playlists) {
         try {
-          const playlistTracks = await api.playlists(playlist.id).tracks()
-          tracks.push(...playlistTracks)
+          const tracks = (await api.getPlaylist(playlist.id).tracks()).items
+          for (const track of tracks) {
+            for (const artist of track.artists) {
+              artists.add(artist.uri)
+            }
+          }
         } catch (e) {
           continue
         }
       }
     } catch(e) { console.log(e) }
     
-    // const latestArtists = this.db.get("me_artists") || 0
-    this.$emit(tracks)
-    return tracks
-    // if (true) {
-      // this.db.set("me_artists", topArtists)
-    // }
+    const latestArtists = this.db.get("me_artists") || []
+    const allArtists = new Set()
+    latestArtists.forEach(allArtists.add)
 
-    // if (changed) {
-    //   this.$emit(updates)
-    //   return updates
-    // } else {
-    //   return
-    // }
+    const newArtists = []
+    for (const artist of artists) {
+      if (!allArtists.has(artist)) {
+        newArtists.push(artist)
+        allArtists.add(artist)
+      }
+    }
+    if (newArtists.length) {
+      this.db.set("me_artists", Array.from(allArtists))
+      this.$emit(newArtists)
+    }
+    return newArtists
   },
 }
