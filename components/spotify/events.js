@@ -14,7 +14,7 @@ const spotify = require("https://github.com/PipedreamHQ/pipedream/blob/ac-rally/
 
 module.exports = {
   name: "Spotify.Events",
-  version: "1.4",
+  version: "1.5",
   props: {
     // Why do I have to do this? Why is this not just a normal require? What does registering get me other than naming and putting on this?
     spotify,
@@ -24,6 +24,7 @@ module.exports = {
     },
   },
   async run() {
+    console.log(this)
     const api = this.spotify.api()
     const topArtists = await api.my.top.artists()
     console.log(topArtists)

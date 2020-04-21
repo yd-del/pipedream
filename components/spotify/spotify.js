@@ -154,6 +154,7 @@ const spotify = {
     // Wish I had an easier way of specifying a getter - especially when working with entity-based
     // third-party apis. Otherwise, I have to add a layer of indirection - like so.
     api() {
+      console.log(this)
       if (!this._api) {
         this._api = new Spotify({ token: this.$auth.oauth_access_token })
       }
