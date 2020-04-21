@@ -15,7 +15,7 @@ function toUrl(path, params = {}) {
 class API {
   constructor({ client = null, token = null }, properties = {}) {
     this.client = client
-    this.token = token
+    this.token = token || this.$auth.oauth_access_token
     if (!this.client) {
       this.client = axios.create({
         baseURL: "https://api.spotify.com",
