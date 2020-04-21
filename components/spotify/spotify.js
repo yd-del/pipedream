@@ -110,11 +110,11 @@ class Spotify extends API {
   }
   user(user_id) {
     return new API(this, {
-      async createPlaylist(name, description = undefined, public = true, collaborative = false) {
+      async createPlaylist(name, description = undefined, _public = true, collaborative = false) {
         const details = {
           name,
           description,
-          public,
+          public: _public,
           collaborative,
         }
         return (await this.client.post(`/v1/users/${user_id}/playlists`, details)).data
