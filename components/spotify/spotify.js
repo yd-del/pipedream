@@ -14,6 +14,7 @@ class Spotify {
         },
         withCredentials: true,
       })
+      this.client.interceptors.response.use(r => r.data, err => Promise.reject(err))
     }
     for (const key of Object.keys(methods)) {
       this[key] = methods[key].bind(this)
