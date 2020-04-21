@@ -50,18 +50,4 @@ const spotify = {
   },
 }
 
-module.exports = {
-  name: "Spotify.Me",
-  version: "1.0",
-  props: {
-    spotify,
-    timer: {
-      type: "$.interface.timer",
-    },
-  },
-  async run() {
-    const me = await this.spotify.me()
-    this.$emit(me)
-    return me
-  },
-}
+module.exports = spotify
