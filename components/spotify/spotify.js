@@ -1,7 +1,7 @@
 const axios = require('axios')
 const qs = require("querystring")
 
-function bindAll(_this: object, target: any): any {
+function bindAll(_this, target) {
   if (typeof target === "function") {
     return target.bind(_this)
   } else if (typeof target === "object") {
