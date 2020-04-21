@@ -15,7 +15,7 @@ function toUrl(path, params = {}) {
 class API {
   constructor({ client = null, token = null }, properties = {}) {
     this.client = client
-    this.token = token || this.$auth.oauth_access_token
+    this.token = token
     if (!this.client) {
       this.client = axios.create({
         baseURL: "https://api.spotify.com",
@@ -154,7 +154,6 @@ const spotify = {
     // Wish I had an easier way of specifying a getter - especially when working with entity-based
     // third-party apis. Otherwise, I have to add a layer of indirection - like so.
     api() {
-      console.log(this)
       if (!this._api) {
         this._api = new Spotify({ token: this.$auth.oauth_access_token })
       }
