@@ -25,8 +25,22 @@ class API {
         },
         withCredentials: true,
       })
-      this.client.interceptors.response.use( r => r, err => {
+      this.client.interceptors.request.use(
+        r => {
+          console.log("request", r)
+          return r
+        },
+        err => {
         console.log(err)
+        return Promise.reject(err)
+      })
+      this.client.interceptors.response.use(
+        r => {
+          console.log("response", r)
+          return r
+        },
+        err => {
+        console.log("responseError", err)
         return Promise.reject(err)
       })
     }
