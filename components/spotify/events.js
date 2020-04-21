@@ -31,7 +31,7 @@ module.exports = {
 
     const latestFollowers = this.db.get("me_followers") || 0
     console.log(me)
-    console.log(followers.total, latestFollowers)
+    console.log(me.followers.total, latestFollowers)
     if (me.followers.total != latestFollowers) {
       changed = true
       updates.me.followers.change = me.followers.total - latestFollowers,
