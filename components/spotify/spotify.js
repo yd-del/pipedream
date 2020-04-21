@@ -14,6 +14,7 @@ function toUrl(path, params = {}) {
 
 class API {
   constructor({ client = null, token = null }, properties = {}) {
+    console.log("newAPI", token)
     this.client = client
     this.token = token
     if (!this.client) {
