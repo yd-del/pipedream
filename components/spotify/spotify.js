@@ -56,7 +56,7 @@ class Spotify extends API {
       },
     })
   }
-  get playlist(playlist_id) {
+  playlist(playlist_id) {
     return new API(this, {
       async details(params = {}) {
         return (await this.client.get(idsToUrl("/v1/playlists", playlist_id, params))).data
