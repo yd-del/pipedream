@@ -2,7 +2,7 @@ const axios = require('axios')
 const querystring = require("querystring")
 
 class Spotify {
-  constructor({ client: null, token: null }, methods = {}) {
+  constructor({ client = null, token = null }, methods = {}) {
     this.client = client
     this.token = token
     if (!this.client) {

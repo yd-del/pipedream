@@ -7,6 +7,7 @@
 
 // Issue: I really want local requires so that I don't have to do a push every time I want to change the app
 // Issue: Can't use branch named ac/rally - must use ac-rally. Attempting to deploy creates a massive wall of text without a clear error message.
+// Issue: When doing remote requires, errors in the require are not shown with filename - difficult to find the actual error.
 const spotify = require("https://github.com/PipedreamHQ/pipedream/blob/ac-rally/components/spotify/spotify.js")
 
 module.exports = {
