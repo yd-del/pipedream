@@ -22,7 +22,7 @@ function idsToUrl(path, idOrArray, params) {
 }
 
 function toUrl(path, params = {}) {
-  return `${path}${qs.stringify(params, { arrayFormat: "comma" })}`
+  return `${path}?${qs.stringify(params, { arrayFormat: "comma" })}`
 }
 
 class API {

@@ -25,18 +25,36 @@ module.exports = {
   },
   async run() {
     const api = this.spotify.api()
-    const topArtists = await api.my.top.artists({ limit: 20, time_range: "short_term" })
-    const 
-    const latestArtists = this.db.get("me_artists") || 0
-    if () {
-      this.db.set("me_artists", allArtists)
-    }
+    // const topArtists = await api.my.top.artists({ limit: 20 })
+    let tracks = []
+    try {
+      const topTracks = await api.my.top.tracks({ limit: 20 })
+      tracks.push(...topTracks)
+    } catch(e) { console.log(e) }
+    try {
+      const playlists = await api.my.playlists({ limit: 20 })
+      for (const playlist of playlists) {
+        try {
+          const playlistTracks = await api.playlists(playlist.id).tracks()
+          tracks.push(...playlistTracks)
+        } catch (e) {
+          continue
+        }
+      }
+    } catch(e) { console.log(e) }
+    
+    // const latestArtists = this.db.get("me_artists") || 0
+    this.$emit(tracks)
+    return tracks
+    // if (true) {
+      // this.db.set("me_artists", topArtists)
+    // }
 
-    if (changed) {
-      this.$emit(updates)
-      return updates
-    } else {
-      return
-    }
+    // if (changed) {
+    //   this.$emit(updates)
+    //   return updates
+    // } else {
+    //   return
+    // }
   },
 }
