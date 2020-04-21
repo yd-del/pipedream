@@ -14,7 +14,6 @@ class Spotify {
         },
         withCredentials: true,
       })
-      this.client.interceptors.response.use(r => r.data, err => Promise.reject(err))
     }
     for (const key of Object.keys(methods)) {
       this[key] = methods[key].bind(this)
@@ -22,8 +21,8 @@ class Spotify {
   }
   get users() {
     return new Spotify(this, {
-      me: () => this.client.get("/v1/me"),
-      user: user_id => this.client.get(`/v1/users/${user_id}`),
+      me: async () => (await this.client.get("/v1/me")).data,
+      user: async user_id => (await this.client.get(`/v1/users/${user_id}`)).data,
     })
   }
 }
