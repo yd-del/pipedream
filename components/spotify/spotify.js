@@ -25,6 +25,10 @@ class API {
         },
         withCredentials: true,
       })
+      this.client.interceptors.response.use( r => r, err => {
+        console.log(err)
+        return Promise.reject(err)
+      })
     }
     for (const key of Object.keys(properties)) {
       if (typeof properties[key] == "function") {
