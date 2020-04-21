@@ -58,7 +58,7 @@ class API {
         return Promise.reject(err)
       })
     }
-    Object.assign(this, bindAll(properties))
+    Object.assign(this, bindAll(this, properties))
   }
 }
 class Spotify extends API {
