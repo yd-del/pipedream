@@ -27,7 +27,6 @@ function toUrl(path, params = {}) {
 
 class API {
   constructor({ client = null, token = null }, properties = {}) {
-    console.log("newAPI", token)
     this.client = client
     this.token = token
     if (!this.client) {
@@ -38,24 +37,6 @@ class API {
           Authorization: `Bearer ${this.token}`,
         },
         withCredentials: true,
-      })
-      this.client.interceptors.request.use(
-        r => {
-          console.log("request", r)
-          return r
-        },
-        err => {
-        console.log(err)
-        return Promise.reject(err)
-      })
-      this.client.interceptors.response.use(
-        r => {
-          console.log("response", r)
-          return r
-        },
-        err => {
-        console.log("responseError", err)
-        return Promise.reject(err)
       })
     }
     Object.assign(this, bindAll(this, properties))

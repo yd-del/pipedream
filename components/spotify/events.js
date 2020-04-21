@@ -24,29 +24,19 @@ module.exports = {
     },
   },
   async run() {
-    console.log(this)
     const api = this.spotify.api()
-    const topArtists = await api.my.top.artists()
-    console.log(topArtists)
-    this.$emit(topArtists)
-    // const me = await api.users.me()
-    // let changed = false
-    // const updates = {
-    //   me,
-    // }
-    //
-    // const latestFollowers = this.db.get("me_followers") || 0
-    // if (me.followers && me.followers.total && me.followers.total != latestFollowers) {
-    //   changed = true
-    //   updates.me.followers.change = me.followers.total - latestFollowers,
-    //   this.db.set("me_followers", me.followers.total)
-    // }
-    //
-    // if (changed) {
-    //   this.$emit(updates)
-    //   return updates
-    // } else {
-    //   return
-    // }
+    const topArtists = await api.my.top.artists({ limit: 20, time_range: "short_term" })
+    const 
+    const latestArtists = this.db.get("me_artists") || 0
+    if () {
+      this.db.set("me_artists", allArtists)
+    }
+
+    if (changed) {
+      this.$emit(updates)
+      return updates
+    } else {
+      return
+    }
   },
 }
