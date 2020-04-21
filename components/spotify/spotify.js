@@ -84,7 +84,7 @@ class Spotify extends API {
   }
   async search(q, type, params = {})  {
     return (await this.client.get(toUrl("search", { ...params, q, type }))).data
-  },
+  }
   get show() {
     return new API(this, {
       async details(show_id, params = {}) {
