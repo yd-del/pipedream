@@ -11,6 +11,7 @@
 // Issue: When doing remote requires, changes to required files don't get registered unless updating component.js - NOT JUST CALLINIG PD-UPDATE!
 //   The component.js must actually change for changes in required files to be picked up.
 // Issue: console.error vs console.log
+// NTH: Freeze/Reset/Rollback DB state between runs - for testing.
 const spotify = require("https://github.com/PipedreamHQ/pipedream/blob/ac-rally/components/spotify/spotify.js")
 const _ = require("lodash")
 const axios = require("axios")
