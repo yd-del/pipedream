@@ -96,6 +96,9 @@ module.exports = {
             console.log(lyricsBody)
             if (lyricsBody) {
               const event = {
+                isrc_id: isrc,
+                musixmatch_id: trackId,
+                spotify_id: _.get(foundIsrc[isrc], "track.uri"),
                 album: {
                   name: _.get(foundIsrc[isrc], "track.album.name"),
                   href: _.get(foundIsrc[isrc], "track.album.href"),
@@ -103,7 +106,7 @@ module.exports = {
                   release_date: _.get(foundIsrc[isrc], "track.album.release_date"),
                 },
                 artists: _.get(foundIsrc[isrc], "track.artists"),
-                href: _.get(foundIsrc[isrc], "track..href"),
+                href: _.get(foundIsrc[isrc], "track.href"),
                 name: _.get(foundIsrc[isrc], "track.name"),
                 preview_url: _.get(foundIsrc[isrc], "track.preview_url"),
                 lyrics: lyricsBody,
