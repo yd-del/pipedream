@@ -10,7 +10,11 @@
 // Issue: When doing remote requires, errors in the require are not shown with filename - difficult to find the actual error.
 // Issue: When doing remote requires, changes to required files don't get registered unless updating component.js - NOT JUST CALLINIG PD-UPDATE!
 //   The component.js must actually change for changes in required files to be picked up.
+// Issue: console.error vs console.log
 const spotify = require("https://github.com/PipedreamHQ/pipedream/blob/ac-rally/components/spotify/spotify.js")
+const _ = require("lodash")
+const axios = require("axios")
+const qs = require("query-string")
 
 module.exports = {
   name: "Spotify.Events",
@@ -18,6 +22,7 @@ module.exports = {
   props: {
     // Why do I have to do this? Why is this not just a normal require? What does registering get me other than naming and putting on this?
     spotify,
+    musixmatchApiKey: "string",
     db: "$.service.db",
     timer: {
       type: "$.interface.timer",
@@ -25,31 +30,29 @@ module.exports = {
   },
   async run() {
     const api = this.spotify.api()
-    const me = await api.getMe()
-    const artists = new Set()
+    const foundIsrc = {}
     try {
-      const topArtists = await api.getMyTopArtists({ limit: 20 })
-      for (const artist of topArtists) {
-        artists.add(artist.uri)
-      }
-    } catch (e) {}
-    try {
-      const tracks = (await api.getMyTopTracks({ limit: 20 })).items
+      const tracks = (await api.getMySavedTracks()).body.items
       for (const track of tracks) {
-        for (const artist of track.artists) {
-          artists.add(artist.uri)
-        }
+        const isrc = _.get(track, "track.external_ids.isrc")
+        if (isrc) foundIsrc[isrc] = track
       }
     } catch(e) { console.log(e) }
     try {
-      const playlists = (await api.getUserPlaylists(me.id, { limit: 20 })).items
+      const tracks = (await api.getMyTopTracks()).body.items
+      for (const track of tracks) {
+        const isrc = _.get(track, "track.external_ids.isrc")
+        if (isrc) foundIsrc[isrc] = track
+      }
+    } catch(e) { console.log(e) }
+    try {
+      const playlists = (await api.getUserPlaylists()).body.items
       for (const playlist of playlists) {
         try {
-          const tracks = (await api.getPlaylist(playlist.id).tracks()).items
+          const tracks = (await api.getPlaylistTracks(playlist.id)).body.items
           for (const track of tracks) {
-            for (const artist of track.artists) {
-              artists.add(artist.uri)
-            }
+            const isrc = _.get(track, "track.external_ids.isrc")
+            if (isrc) foundIsrc[isrc] = track
           }
         } catch (e) {
           continue
@@ -57,21 +60,61 @@ module.exports = {
       }
     } catch(e) { console.log(e) }
     
-    const latestArtists = this.db.get("me_artists") || []
-    const allArtists = new Set()
-    latestArtists.forEach(allArtists.add)
+    const latestIsrc = this.db.get("me_isrc") || []
+    const allIsrc = new Set()
+    latestIsrc.forEach(id => { if (id) allIsrc.add(id) })
 
-    const newArtists = []
-    for (const artist of artists) {
-      if (!allArtists.has(artist)) {
-        newArtists.push(artist)
-        allArtists.add(artist)
+    const newIsrc = []
+    for (const isrc of Object.keys(foundIsrc)) {
+      if (!allIsrc.has(isrc)) {
+        newIsrc.push(isrc)
+        allIsrc.add(isrc)
       }
     }
-    if (newArtists.length) {
-      this.db.set("me_artists", Array.from(allArtists))
-      this.$emit(newArtists)
+    if (newIsrc.length) {
+      this.db.set("me_isrc", Array.from(allIsrc))
+      const client = axios.create({
+        baseURL: "https://api.musixmatch.com/ws/1.1/",
+      })
+      for (const isrc of newIsrc) {
+        const params = {
+          apikey: this.musixmatchApiKey,
+          track_isrc: isrc,
+        }
+        try {
+          const response = await client.get(`track.get?${qs.stringify(params)}`)
+          const trackId = _.get(response, "data.message.body.track.track_id")
+          if (trackId) {
+            const lyricsParams = {
+              apikey: this.musixmatchApiKey,
+              track_id: trackId,
+            }
+            const lyricsResponse = await client.get(`track.lyrics.get?${qs.stringify(lyricsParams)}`)
+            console.log(lyricsResponse.data)
+            const lyricsBody = _.get(lyricsResponse, "data.message.body.lyrics.lyrics_body")
+            console.log(lyricsBody)
+            if (lyricsBody) {
+              const event = {
+                album: {
+                  name: _.get(foundIsrc[isrc], "track.album.name"),
+                  href: _.get(foundIsrc[isrc], "track.album.href"),
+                  images: _.get(foundIsrc[isrc], "track.album.images"),
+                  release_date: _.get(foundIsrc[isrc], "track.album.release_date"),
+                },
+                artists: _.get(foundIsrc[isrc], "track.artists"),
+                href: _.get(foundIsrc[isrc], "track..href"),
+                name: _.get(foundIsrc[isrc], "track.name"),
+                preview_url: _.get(foundIsrc[isrc], "track.preview_url"),
+                lyrics: lyricsBody,
+              }
+              this.$emit(event)
+            }
+          }
+        } catch (e) {
+          console.log(e)
+        }
+      }
     }
-    return newArtists
+    return newIsrc
   },
 }
